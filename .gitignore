@@ -1,0 +1,13 @@
+# configuration
+.vscode
+.idea
+
+# python cache
+__pycache__
+
+# raw datasets or intermediate data
+datasets
+
+# logs and temporary files
+temp
+logs
