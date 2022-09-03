@@ -3,12 +3,11 @@ from typing import OrderedDict
 
 import torch
 from rich.console import Console
-from utils.util import clone_parameters
 
 from .base import ClientBase
 
 
-class pFedLAClient(ClientBase):
+class FedAvgClient(ClientBase):
     def __init__(
         self,
         backbone: torch.nn.Module,
@@ -21,7 +20,7 @@ class pFedLAClient(ClientBase):
         logger: Console,
         gpu: int,
     ):
-        super(pFedLAClient, self).__init__(
+        super(FedAvgClient, self).__init__(
             backbone,
             dataset,
             batch_size,
@@ -49,28 +48,15 @@ class pFedLAClient(ClientBase):
 
     def _train(self):
         self.model.train()
-        frz_model_params = clone_parameters(self.model)
         for _ in range(self.local_epochs):
             for x, y in self.trainset:
                 x, y = x.to(self.device), y.to(self.device)
-
                 logits = self.model(x)
-
                 loss = self.criterion(logits, y)
-
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
-        delta = OrderedDict(
-            {
-                k: p1 - p0
-                for (k, p1), p0 in zip(
-                    self.model.state_dict(keep_vars=True).items(),
-                    frz_model_params.values(),
-                )
-            }
-        )
-        return delta
+        return list(self.model.state_dict().values()), len(self.trainset.dataset)
 
     def test(
         self, client_id: int, model_params: OrderedDict[str, torch.Tensor],
@@ -80,12 +66,6 @@ class pFedLAClient(ClientBase):
         self.get_client_local_dataset()
         self.model.to(self.device)
         loss, acc = self.evaluate()
-        dummy_diff = OrderedDict(
-            {
-                name: torch.zeros_like(param)
-                for name, param in self.model.state_dict().items()
-            }
-        )
         self.model.cpu()
         stats = {"loss": loss, "acc": acc}
-        return dummy_diff, stats
+        return stats

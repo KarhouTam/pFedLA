@@ -63,7 +63,5 @@ Also, you can directly run `python ./src/server/pFedLA.py` with your custom argu
 
 Add some baselines for comparison
 
-- FedAvg
+- [x] FedAvg
 - FedBN
-
-PR for more baselines code is welcome.😊

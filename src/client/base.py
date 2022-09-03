@@ -35,8 +35,10 @@ class ClientBase:
         self.valset: DataLoader = None
         self.trainset: DataLoader = None
         self.testset: DataLoader = None
-        self.optimizer: torch.optim.Optimizer = None
         self.model: torch.nn.Module = deepcopy(backbone)
+        self.optimizer: torch.optim.Optimizer = torch.optim.SGD(
+            self.model.parameters(), lr=local_lr
+        )
         self.dataset = dataset
         self.batch_size = batch_size
         self.valset_ratio = valset_ratio
@@ -119,4 +121,4 @@ class ClientBase:
         pass
 
     def set_parameters(self, model_params: OrderedDict):
-        self.model.load_state_dict(model_params, strict=False)
+        self.model.load_state_dict(model_params, strict=True)
