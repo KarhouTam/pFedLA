@@ -1,12 +1,10 @@
-# Layer-wised Model Aggregation for Personalized Federated Learning [[CVPR2022]](https://arxiv.org/abs/2205.03993)
+# pFedLA(HeurpFedLA), FedAvg, FedBN
 
 **NOTE: This's not the official Repo.**
 
 So maybe some hyperparameters not mentioned in paper aren't optimal.
 
 All datasets mentioned in paper are supported(CIFAR10, ...).
-
-*FedAvg*, *FedBN* are supported also.
 
 If you find sth wrong about the code, feel free to open an issue or pr.
 
@@ -28,7 +26,7 @@ Check `./src/data/run.py` for more Info of all arguments.
 
 ### Training
 
-Scripts for running experiment with fixed args are in `./scripts`
+Scripts for running pFedLA with fixed args are in `./scripts`
 
 ```shell
 cd ./scripts;
@@ -36,7 +34,7 @@ chmod +x ./*;
 sh ${script}
 ```
 
-Also, you can directly run `python ./src/server/pFedLA.py` with your custom arguments after generate clients dataset.
+Also, you can directly run `python ./src/server/${algo}.py` with your custom arguments after generate clients dataset.
 
 
 ## Arguments
