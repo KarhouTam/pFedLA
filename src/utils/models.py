@@ -9,10 +9,6 @@ from torch.nn import functional as F
 
 from .util import TEMP_DIR
 
-_CACHE_DIR = TEMP_DIR / ".hn"
-if not os.path.isdir(_CACHE_DIR):
-    os.system(f"mkdir -p {_CACHE_DIR}")
-
 
 class Linear(nn.Module):
     def __init__(self, in_features, out_features) -> None:
@@ -48,9 +44,13 @@ class HyperNetwork(nn.Module):
         self.client_num = client_num
         self.embedding = nn.Embedding(client_num, embedding_dim, device=self.device)
         self.blocks_name = set(n.split(".")[0] for n, _ in backbone.named_parameters())
-        if os.listdir(_CACHE_DIR) != client_num:
+        self.cache_dir = TEMP_DIR / "hn"
+        if not os.path.isdir(self.cache_dir):
+            os.system(f"mkdir -p {self.cache_dir}")
+
+        if os.listdir(self.cache_dir) != client_num:
             for client_id in range(client_num):
-                with open(_CACHE_DIR / f"{client_id}.pkl", "wb") as f:
+                with open(self.cache_dir / f"{client_id}.pkl", "wb") as f:
                     pickle.dump(
                         {
                             "mlp": nn.Sequential(
@@ -123,25 +123,24 @@ class HyperNetwork(nn.Module):
     def save_hn(self):
         for block, param in self.fc_layers.items():
             self.fc_layers[block] = param.cpu()
-        with open(_CACHE_DIR / f"{self.current_client_id}.pkl", "wb") as f:
+        with open(self.cache_dir / f"{self.current_client_id}.pkl", "wb") as f:
             pickle.dump(
-                {"mlp": self.mlp.cpu(), "fc": self.fc_layers},
-                f,
+                {"mlp": self.mlp.cpu(), "fc": self.fc_layers}, f,
             )
         self.mlp = None
         self.fc_layers = {}
         self.current_client_id = None
 
     def load_hn(self) -> Tuple[nn.Sequential, OrderedDict[str, Linear]]:
-        with open(_CACHE_DIR / f"{self.current_client_id}.pkl", "rb") as f:
+        with open(self.cache_dir / f"{self.current_client_id}.pkl", "rb") as f:
             parameters = pickle.load(f)
         self.mlp = parameters["mlp"].to(self.device)
         for block, param in parameters["fc"].items():
             self.fc_layers[block] = param.to(self.device)
 
     def clean_models(self):
-        if os.path.isdir(_CACHE_DIR):
-            os.system(f"rm -rf {_CACHE_DIR}")
+        if os.path.isdir(self.cache_dir):
+            os.system(f"rm -rf {self.cache_dir}")
 
 
 # (input_channels, first fc layer's input features, classes)
@@ -184,7 +183,7 @@ class CNNWithBatchNorm(nn.Module):
         )
 
         self.block4 = nn.ModuleDict(
-            {"fc": nn.Linear(ARGS[dataset][1], 2048), "relu": nn.ReLU(True)}  # 6272
+            {"fc": nn.Linear(ARGS[dataset][1], 2048), "relu": nn.ReLU(True)}
         )
         self.block5 = nn.ModuleDict({"fc": nn.Linear(2048, 512), "relu": nn.ReLU(True)})
         self.block6 = nn.ModuleDict({"fc": nn.Linear(512, ARGS[dataset][2])})
@@ -234,10 +233,7 @@ class CNNWithoutBatchNorm(nn.Module):
             }
         )
         self.block3 = nn.ModuleDict(
-            {
-                "conv": nn.Conv2d(64, 128, 5, 1, 2),
-                "relu": nn.ReLU(True),
-            }
+            {"conv": nn.Conv2d(64, 128, 5, 1, 2), "relu": nn.ReLU(True),}
         )
 
         self.block4 = nn.ModuleDict(

@@ -6,6 +6,8 @@ So maybe some hyperparameters not mentioned in paper aren't optimal.
 
 All datasets mentioned in paper are supported(CIFAR10, ...).
 
+*FedAvg*, *FedBN* are supported also.
+
 If you find sth wrong about the code, feel free to open an issue or pr.
 
 ## Run
@@ -58,10 +60,3 @@ Also, you can directly run `python ./src/server/pFedLA.py` with your custom argu
 | seed          | Random seed for running experiment.                                                                |
 | save_period   | Temporarily save clients model parameters after every `save_period` communication rounds.          |
 
-## TODO
-
-
-Add some baselines for comparison
-
-- [x] FedAvg
-- FedBN

@@ -11,6 +11,7 @@ _CURRENT_DIR = Path(__file__).parent.abspath()
 import sys
 
 sys.path.append(_CURRENT_DIR.parent)
+sys.path.append(_CURRENT_DIR.parent / "data")
 
 from utils.util import get_dataloader
 
@@ -74,6 +75,9 @@ class ClientBase:
     def train(self):
         pass
 
+    def _train(self):
+        pass
+
     def get_client_local_dataset(self):
         datasets = get_dataloader(
             self.dataset,
@@ -116,9 +120,6 @@ class ClientBase:
             return res, eval_stats
 
         return _log_and_train
-
-    def _train(self):
-        pass
 
     def set_parameters(self, model_params: OrderedDict):
         self.model.load_state_dict(model_params, strict=True)

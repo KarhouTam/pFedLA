@@ -17,8 +17,8 @@ import torch
 from client.pFedLA import pFedLAClient
 from rich.progress import track
 from tqdm import tqdm
-from utils.models import HyperNetwork
 from utils.args import get_pFedLA_args
+from utils.models import HyperNetwork
 
 from base import ServerBase
 
@@ -33,27 +33,22 @@ class pFedLAServer(ServerBase):
             self.args.local_epochs,
             self.args.k,
         )
-
-        self.logger.log("Initializing clients model...")
-        passed_epoch = 0
+        if self.global_params_dict is not None:
+            del self.global_params_dict  # pFedLA don't have global model
         if os.listdir(self.temp_dir) != []:
-            self.client_model_params_list = torch.load(
-                self.temp_dir / "clients_model.pt"
-            )
-            with open(self.temp_dir / "epoch.pkl", "rb") as f:
-                passed_epoch = pickle.load(f)
-            self.logger.log(
-                "Find existed clients model...",
-                f"Have run {passed_epoch} epochs already.",
-            )
+            if os.path.exists(self.temp_dir / "clients_model.pt"):
+                self.client_model_params_list = torch.load(
+                    self.temp_dir / "clients_model.pt"
+                )
+                self.logger.log("Find existed clients model...")
         else:
+            self.logger.log("Initializing clients model...")
             self.client_model_params_list = [
                 list(self.backbone(self.args.dataset).state_dict().values())
                 for _ in range(self.client_num_in_total)
             ]
-        self.global_epochs = self.args.global_epochs - passed_epoch
+
         _dummy_model = self.backbone(self.args.dataset)
-        self.logger.log("Backbone:", _dummy_model)
         self.hypernet = HyperNetwork(
             embedding_dim=self.args.embedding_dim,
             client_num=self.client_num_in_total,
@@ -81,7 +76,6 @@ class pFedLAServer(ServerBase):
             for name, param in _dummy_model.state_dict(keep_vars=True).items()
             if param.requires_grad
         ]
-        self.all_clients_stats = {i: {} for i in self.client_id_indices}
 
     def train(self) -> None:
         self.logger.log("=" * 30, "TRAINING", "=" * 30, style="bold green")
