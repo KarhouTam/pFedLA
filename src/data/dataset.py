@@ -47,7 +47,7 @@ class CIFARDataset(Dataset):
                 _data = ToTensor()(_data)
             else:
                 _data = torch.tensor(_data)
-        self.data = _data.float().reshape(-1, 3, 32, 32)
+        self.data = torch.permute(_data, [0, -1, 1, 2]).float()
         if not isinstance(_targets, torch.Tensor):
             _targets = torch.tensor(_targets)
         self.targets = _targets.long()
