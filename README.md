@@ -8,6 +8,8 @@ All datasets mentioned in paper are supported(CIFAR10, ...).
 
 If you find sth wrong about the code, feel free to open an issue or pr.
 
+Note that I have recently released a [benchmark of federated learning](https://github.com/KarhouTam/FL-bench) that includes this method and many ohter baselines. Welcome to check my benchmark and star it! 🤗
+
 ## Run
 
 ### Generating clients dataset
