@@ -81,8 +81,8 @@ def main(args):
             transform=transforms.ToTensor(),
         )
     else:
-        trainset = ori_dataset(dataset_root, train=True, download=True,)
-        testset = ori_dataset(dataset_root, train=False,)
+        trainset = ori_dataset(dataset_root, train=True, download=True)
+        testset = ori_dataset(dataset_root, train=False)
     concat_datasets = [trainset, testset]
     if args.alpha > 0:  # NOTE: Dirichlet(alpha)
         all_datasets, stats = dirichlet_distribution(
@@ -112,42 +112,11 @@ def main(args):
             pickle.dump(subset, f)
 
     # save stats
-    if args.type == "user":
-        train_clients_num = int(client_num_in_total * args.fraction)
-        clients_4_train = [i for i in range(train_clients_num)]
-        clients_4_test = [i for i in range(train_clients_num, client_num_in_total)]
-
-        with open(pickles_dir / "seperation.pkl", "wb") as f:
-            pickle.dump(
-                {
-                    "train": clients_4_train,
-                    "test": clients_4_test,
-                    "total": client_num_in_total,
-                },
-                f,
-            )
-
-        train_clients_stats = dict(
-            zip(clients_4_train, list(stats.values())[:train_clients_num])
-        )
-        test_clients_stats = dict(
-            zip(
-                clients_4_test,
-                list(stats.values())[train_clients_num:client_num_in_total],
-            )
-        )
-
-        with open(DATASETS_DIR / args.dataset / "all_stats.json", "w") as f:
-            json.dump({"train": train_clients_stats, "test": test_clients_stats}, f)
-
-    else:  # NOTE: "sample"  save stats
-        client_id_indices = [i for i in range(client_num_in_total)]
-        with open(pickles_dir / "seperation.pkl", "wb") as f:
-            pickle.dump(
-                {"id": client_id_indices, "total": client_num_in_total,}, f,
-            )
-        with open(DATASETS_DIR / args.dataset / "all_stats.json", "w") as f:
-            json.dump(stats, f)
+    client_id_indices = [i for i in range(client_num_in_total)]
+    with open(pickles_dir / "seperation.pkl", "wb") as f:
+        pickle.dump({"id": client_id_indices, "total": client_num_in_total}, f)
+    with open(DATASETS_DIR / args.dataset / "all_stats.json", "w") as f:
+        json.dump(stats, f)
 
     args.root = (
         Path(args.root).abspath()
@@ -174,12 +143,6 @@ if __name__ == "__main__":
     ###############################################################
     parser.add_argument("--client_num_in_total", type=int, default=200)
     parser.add_argument(
-        "--fraction",
-        type=float,
-        default=0.9,
-        help="Propotion of train clients. For 'user' only.",
-    )
-    parser.add_argument(
         "--classes",
         type=int,
         default=-1,
@@ -195,9 +158,6 @@ if __name__ == "__main__":
         default="byclass",
     )
     #######################################################
-    parser.add_argument(
-        "--type", type=str, choices=["sample", "user"], default="sample"
-    )
     parser.add_argument("--client_num_in_each_pickles", type=int, default=10)
     parser.add_argument("--root", type=str, default=None)
     args = parser.parse_args()

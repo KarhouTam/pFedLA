@@ -54,14 +54,10 @@ def get_dataloader(
 def get_client_id_indices(
     dataset,
 ) -> Union[Tuple[List[int], List[int], int], Tuple[List[int], int]]:
-    args_dict = json.load(open(DATASETS_DIR / "args.json", "r"))
     dataset_pickles_path = DATASETS_DIR / dataset / "pickles"
     with open(dataset_pickles_path / "seperation.pkl", "rb") as f:
         seperation = pickle.load(f)
-    if args_dict["type"] == "user":
-        return seperation["train"], seperation["test"], seperation["total"]
-    else:  # NOTE: "sample"
-        return seperation["id"], seperation["total"]
+    return seperation["id"], seperation["total"]
 
 
 def fix_random_seed(seed: int) -> None:
@@ -91,5 +87,3 @@ def clone_parameters(
                 for name, param in src.state_dict(keep_vars=True).items()
             }
         )
-
-
